@@ -11,19 +11,22 @@ import AppIcon from '../components/AppIcon'
 type ActionKind = 'cancel' | 'pickup' | 'return'
 const actionLabels = { cancel: '取消预约', pickup: '确认领用', return: '确认归还' }
 const blankFilters = { date: '', status: '', equipmentId: '', member: '' }
+
 export default function ReservationsView({ admin }: { admin: boolean }) {
   const notify = useToast()
   const [data, setData] = useState<Page<Reservation>>({ items: [], total: 0, page: 1, size: 10 })
   const [equipmentOptions, setEquipmentOptions] = useState<Equipment[]>([])
-  const [filters, setFilters] = useState(blankFilters),
-    [applied, setApplied] = useState(blankFilters)
-  const [page, setPage] = useState(1),
-    [refresh, setRefresh] = useState(0)
-  const [loading, setLoading] = useState(true),
-    [error, setError] = useState(''),
-    [busy, setBusy] = useState(false),
-    [actionError, setActionError] = useState('')
+  // filters 保存表单输入；applied 保存点击筛选时提交的条件。
+  const [filters, setFilters] = useState(blankFilters)
+  const [applied, setApplied] = useState(blankFilters)
+  const [page, setPage] = useState(1)
+  const [refresh, setRefresh] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [actionError, setActionError] = useState('')
   const [action, setAction] = useState<{ row: Reservation; kind: ActionKind }>()
+
   useEffect(() => {
     let active = true
     setLoading(true)
@@ -37,46 +40,63 @@ export default function ReservationsView({ admin }: { admin: boolean }) {
     }
     api<Page<Reservation>>((admin ? '/admin/reservations' : '/reservations/mine') + query(params))
       .then((result) => {
-        if (active) setData(result)
+        if (active) {
+          setData(result)
+        }
       })
       .catch((error) => {
-        if (active) setError(errorMessage(error))
+        if (active) {
+          setError(errorMessage(error))
+        }
       })
       .finally(() => {
-        if (active) setLoading(false)
+        if (active) {
+          setLoading(false)
+        }
       })
     return () => {
       active = false
     }
   }, [admin, page, applied, refresh])
+
   useEffect(() => {
-    if (!admin) return
+    if (!admin) {
+      return
+    }
     let active = true
     async function loadEquipment() {
       const items: Equipment[] = []
-      let page = 1,
-        total = 0
+      let page = 1
+      let total = 0
       do {
         const result = await api<Page<Equipment>>('/equipment' + query({ page, size: 100 }))
         items.push(...result.items)
         total = result.total
         page++
       } while (items.length < total)
-      if (active) setEquipmentOptions(items)
+      if (active) {
+        setEquipmentOptions(items)
+      }
     }
     loadEquipment().catch((error) => {
-      if (active) setError(errorMessage(error))
+      if (active) {
+        setError(errorMessage(error))
+      }
     })
     return () => {
       active = false
     }
   }, [admin])
+
   function choose(row: Reservation, kind: ActionKind) {
     setActionError('')
     setAction({ row, kind })
   }
+
   async function confirm() {
-    if (!action || busy) return
+    if (!action || busy) {
+      return
+    }
     setBusy(true)
     setActionError('')
     const { row, kind } = action
@@ -99,9 +119,11 @@ export default function ReservationsView({ admin }: { admin: boolean }) {
       setBusy(false)
     }
   }
+
   function changeFilter(key: keyof typeof blankFilters, value: string) {
     setFilters((old) => ({ ...old, [key]: value }))
   }
+
   return (
     <>
       <div className="page-heading">
@@ -118,14 +140,23 @@ export default function ReservationsView({ admin }: { admin: boolean }) {
           </p>
         </div>
         {!admin && (
-          <Link className="button" to="/equipment">
+          <Link
+            className="button"
+            to="/equipment"
+          >
             预约设备
-            <AppIcon name="arrow" size={17} />
+            <AppIcon
+              name="arrow"
+              size={17}
+            />
           </Link>
         )}
       </div>
       <div className="info-strip">
-        <AppIcon name="calendar" size={20} />
+        <AppIcon
+          name="calendar"
+          size={20}
+        />
         <span>
           {admin
             ? '请核对设备实物和成员信息后确认领用；同一设备需先归还，才可再次领出。'
@@ -157,7 +188,10 @@ export default function ReservationsView({ admin }: { admin: boolean }) {
             >
               <option value="">全部状态</option>
               {(Object.keys(statusLabels) as Status[]).map((key) => (
-                <option key={key} value={key}>
+                <option
+                  key={key}
+                  value={key}
+                >
                   {statusLabels[key]}
                 </option>
               ))}
@@ -173,7 +207,10 @@ export default function ReservationsView({ admin }: { admin: boolean }) {
                 >
                   <option value="">全部设备</option>
                   {equipmentOptions.map((item) => (
-                    <option key={item.id} value={item.id}>
+                    <option
+                      key={item.id}
+                      value={item.id}
+                    >
                       {item.assetCode} · {item.name}
                     </option>
                   ))}
@@ -190,7 +227,10 @@ export default function ReservationsView({ admin }: { admin: boolean }) {
               </label>
             </>
           )}
-          <button className="button" disabled={loading}>
+          <button
+            className="button"
+            disabled={loading}
+          >
             筛选
           </button>
           <button
@@ -207,18 +247,27 @@ export default function ReservationsView({ admin }: { admin: boolean }) {
           </button>
         </form>
         {error && (
-          <div className="alert error" role="alert">
+          <div
+            className="alert error"
+            role="alert"
+          >
             {error}
             <button onClick={() => setRefresh((value) => value + 1)}>重试</button>
           </div>
         )}
         {loading ? (
-          <div className="empty-state" role="status">
+          <div
+            className="empty-state"
+            role="status"
+          >
             正在加载预约记录…
           </div>
         ) : !error && !data.items.length ? (
           <div className="empty-state">
-            <AppIcon name="calendar" size={38} />
+            <AppIcon
+              name="calendar"
+              size={38}
+            />
             <h3>这里还没有预约记录</h3>
             <p>调整筛选条件，或去设备库安排一次预约。</p>
           </div>
@@ -240,7 +289,10 @@ export default function ReservationsView({ admin }: { admin: boolean }) {
                   {data.items.map((row) => (
                     <tr key={row.id}>
                       <td>
-                        <Link to={`/equipment/${row.equipmentId}`} className="table-title">
+                        <Link
+                          to={`/equipment/${row.equipmentId}`}
+                          className="table-title"
+                        >
                           {row.equipmentName}
                         </Link>
                         <small>
@@ -277,7 +329,10 @@ export default function ReservationsView({ admin }: { admin: boolean }) {
                             取消预约
                           </button>
                         ) : admin && row.status === 'RESERVED' ? (
-                          <button className="button small" onClick={() => choose(row, 'pickup')}>
+                          <button
+                            className="button small"
+                            onClick={() => choose(row, 'pickup')}
+                          >
                             确认领用
                           </button>
                         ) : admin && row.status === 'PICKED_UP' ? (

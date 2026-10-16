@@ -10,26 +10,28 @@ import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function EquipmentDetailView() {
   const { id } = useParams()
-  const navigate = useNavigate(),
-    notify = useToast()
-  const [equipment, setEquipment] = useState<Equipment>(),
-    [calendar, setCalendar] = useState<CalendarInfo>(),
-    [availability, setAvailability] = useState<Availability>()
-  const [date, setDate] = useState(''),
-    [selected, setSelected] = useState<Slot>()
-  const [loading, setLoading] = useState(true),
-    [slotsLoading, setSlotsLoading] = useState(false)
-  const [error, setError] = useState(''),
-    [slotsError, setSlotsError] = useState(''),
-    [submitError, setSubmitError] = useState('')
-  const [busy, setBusy] = useState(false),
-    [confirming, setConfirming] = useState(false),
-    [refresh, setRefresh] = useState(0),
-    [slotsRefresh, setSlotsRefresh] = useState(0)
+  const navigate = useNavigate()
+  const notify = useToast()
+  const [equipment, setEquipment] = useState<Equipment>()
+  const [calendar, setCalendar] = useState<CalendarInfo>()
+  const [availability, setAvailability] = useState<Availability>()
+  const [date, setDate] = useState('')
+  const [selected, setSelected] = useState<Slot>()
+  const [loading, setLoading] = useState(true)
+  const [slotsLoading, setSlotsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [slotsError, setSlotsError] = useState('')
+  const [submitError, setSubmitError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [refresh, setRefresh] = useState(0)
+  const [slotsRefresh, setSlotsRefresh] = useState(0)
+
   useEffect(() => {
     let active = true
     setLoading(true)
     setError('')
+    // 日期范围使用服务器的业务时钟，避免依赖浏览器所在时区。
     Promise.all([api<Equipment>(`/equipment/${id}`), api<CalendarInfo>('/calendar')])
       .then(([item, info]) => {
         if (active) {
@@ -39,17 +41,23 @@ export default function EquipmentDetailView() {
         }
       })
       .catch((error) => {
-        if (active) setError(errorMessage(error))
+        if (active) {
+          setError(errorMessage(error))
+        }
       })
       .finally(() => {
-        if (active) setLoading(false)
+        if (active) {
+          setLoading(false)
+        }
       })
     return () => {
       active = false
     }
   }, [id, refresh])
+
   useEffect(() => {
     let active = true
+    // 切换日期时清空旧选择，再查询这个日期的最新占用情况。
     setSelected(undefined)
     setAvailability(undefined)
     setSlotsError('')
@@ -60,20 +68,29 @@ export default function EquipmentDetailView() {
     setSlotsLoading(true)
     api<Availability>(`/equipment/${id}/availability?date=${date}`)
       .then((result) => {
-        if (active) setAvailability(result)
+        if (active) {
+          setAvailability(result)
+        }
       })
       .catch((error) => {
-        if (active) setSlotsError(errorMessage(error))
+        if (active) {
+          setSlotsError(errorMessage(error))
+        }
       })
       .finally(() => {
-        if (active) setSlotsLoading(false)
+        if (active) {
+          setSlotsLoading(false)
+        }
       })
     return () => {
       active = false
     }
   }, [id, date, slotsRefresh])
+
   async function book() {
-    if (busy || !selected || !equipment) return
+    if (busy || !selected || !equipment) {
+      return
+    }
     setBusy(true)
     setSubmitError('')
     try {
@@ -85,19 +102,27 @@ export default function EquipmentDetailView() {
       navigate('/mine')
     } catch (error) {
       setSubmitError(errorMessage(error))
+      // 查询结果只是快照；提交冲突后必须重新选取服务器仍开放的时段。
       setSelected(undefined)
       setSlotsRefresh((value) => value + 1)
     } finally {
       setBusy(false)
     }
   }
+
   return (
     <>
-      <Link className="back-link" to="/equipment">
+      <Link
+        className="back-link"
+        to="/equipment"
+      >
         ← 返回设备库
       </Link>
       {error && (
-        <div className="alert error" role="alert">
+        <div
+          className="alert error"
+          role="alert"
+        >
           {error}
           <button onClick={() => setRefresh((value) => value + 1)}>重试</button>
         </div>
@@ -116,7 +141,10 @@ export default function EquipmentDetailView() {
                 </p>
                 <h1>{equipment.name}</h1>
                 <p className="location">
-                  <AppIcon name="pin" size={16} />
+                  <AppIcon
+                    name="pin"
+                    size={16}
+                  />
                   {equipment.location}
                 </p>
               </div>
@@ -127,7 +155,10 @@ export default function EquipmentDetailView() {
             </div>
             <div className="detail-grid">
               <section className="panel detail-info">
-                <EquipmentArt category={equipment.category} code={equipment.assetCode} />
+                <EquipmentArt
+                  category={equipment.category}
+                  code={equipment.assetCode}
+                />
                 <div className="panel-body">
                   <h3>关于这台设备</h3>
                   <p className="description">{equipment.description || '暂无补充说明。'}</p>
@@ -216,7 +247,10 @@ export default function EquipmentDetailView() {
                   }}
                 >
                   确认预约
-                  <AppIcon name="arrow" size={18} />
+                  <AppIcon
+                    name="arrow"
+                    size={18}
+                  />
                 </button>
                 <p className="form-footnote">预约后可在「我的预约」查看，领用前可自行取消。</p>
               </section>

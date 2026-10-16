@@ -4,15 +4,19 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../providers'
 import { errorMessage } from '../api'
 import AppIcon from '../components/AppIcon'
+
 export default function LoginView() {
   const { user, loading, login, connectionError } = useAuth()
-  const [username, setUsername] = useState(''),
-    [password, setPassword] = useState(''),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (busy) return
+    if (busy) {
+      return
+    }
     setBusy(true)
     setError('')
     try {
@@ -23,8 +27,18 @@ export default function LoginView() {
       setBusy(false)
     }
   }
-  if (loading) return <div className="empty-state">正在连接工作台…</div>
-  if (user) return <Navigate to="/equipment" replace />
+  if (loading) {
+    return <div className="empty-state">正在连接工作台…</div>
+  }
+  if (user) {
+    return (
+      <Navigate
+        to="/equipment"
+        replace
+      />
+    )
+  }
+
   return (
     <div className="login-page">
       <section className="login-story">
@@ -49,20 +63,35 @@ export default function LoginView() {
             预约、领用、归还，简单完成。
           </p>
           <div className="login-objects">
-            <AppIcon name="camera" size={92} />
-            <AppIcon name="phone" size={72} />
-            <AppIcon name="projector" size={86} />
+            <AppIcon
+              name="camera"
+              size={92}
+            />
+            <AppIcon
+              name="phone"
+              size={72}
+            />
+            <AppIcon
+              name="projector"
+              size={86}
+            />
           </div>
         </div>
         <small>一个共享工作室，无限种可能。</small>
       </section>
       <section className="login-form-area">
-        <form className="login-form" onSubmit={submit}>
+        <form
+          className="login-form"
+          onSubmit={submit}
+        >
           <p className="eyebrow">WELCOME BACK</p>
           <h2>欢迎回到共用间</h2>
           <p className="muted">登录后，开始安排你的下一次创作。</p>
           {(error || connectionError) && (
-            <div className="alert error" role="alert">
+            <div
+              className="alert error"
+              role="alert"
+            >
               {error || connectionError}
             </div>
           )}
@@ -90,9 +119,15 @@ export default function LoginView() {
               disabled={busy}
             />
           </label>
-          <button className="button full" disabled={busy}>
+          <button
+            className="button full"
+            disabled={busy}
+          >
             {busy ? '正在登录…' : '登录工作台'}
-            <AppIcon name="arrow" size={18} />
+            <AppIcon
+              name="arrow"
+              size={18}
+            />
           </button>
           <div className="login-help">
             <strong>本地演示账号</strong>
