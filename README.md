@@ -6,7 +6,7 @@ React + TypeScript + Vite 前端，Java + Spring Boot 单体后端，MySQL InnoD
 
 | 组件 | 本项目版本 / 要求 |
 | --- | --- |
-| Java | 21 LTS（本项目编译目标与容器运行时） |
+| Java | 25 LTS（本项目编译目标与容器运行时） |
 | Maven | 3.9.11；本地可使用 3.9.x |
 | Spring Boot | 3.5.16，使用其依赖管理中的 Spring Security、Flyway、JDBC 驱动与 Testcontainers |
 | MySQL | 8.4 LTS，InnoDB；Compose 使用官方 `mysql:8.4` |
@@ -15,7 +15,7 @@ React + TypeScript + Vite 前端，Java + Spring Boot 单体后端，MySQL InnoD
 | TypeScript / Vite | 5.9.3 / 8.3.4 |
 | Docker | 支持 Docker Compose v2 或更新版本 |
 
-版本依据：[Spring Boot 3.5 环境要求](https://docs.spring.io/spring-boot/3.5/system-requirements.html)、[Vite 环境要求](https://vite.dev/guide/)。前端提交 `package-lock.json`，请用 `npm ci` 安装一致的依赖。Java 26 不在本项目所选 Spring Boot 3.5 的支持范围，只有 Java 26 时使用下方 Java 21 容器方式。
+版本依据：[Spring Boot 3.5 环境要求](https://docs.spring.io/spring-boot/3.5/system-requirements.html)、[Vite 环境要求](https://vite.dev/guide/)。前端提交 `package-lock.json`，请用 `npm ci` 安装一致的依赖。Java 25 是本项目当前采用的 LTS 版本，并受 Spring Boot 3.5 支持。
 
 ## 快速启动
 
@@ -28,7 +28,7 @@ docker compose up -d --wait mysql
 
 `.env` 中的密码仅是本地开发示例，请按需修改。配置文件不会提交；第一次初始化数据库后，修改 `.env` 不会自动修改数据库内的既有密码。
 
-**方式 A：本地 Java 21 + Maven，后端单独运行**
+**方式 A：本地 Java 25 + Maven，后端单独运行**
 
 ```bash
 bash scripts/start-backend.sh
@@ -36,7 +36,7 @@ bash scripts/start-backend.sh
 
 该脚本把根目录 `.env` 中的 `MYSQL_*` 转换为后端 `DB_*` 环境变量。也可以手动设置 `DB_URL`、`DB_USERNAME`、`DB_PASSWORD` 后，在 `backend` 目录运行 `mvn spring-boot:run`。URL 示例：`jdbc:mysql://localhost:3307/equipment_booking?connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true`。
 
-**方式 B：没有本地 Java / Maven，使用 Java 21 容器运行后端**
+**方式 B：没有本地 Java / Maven，使用 Java 25 容器运行后端**
 
 ```bash
 docker compose --profile app up -d backend
@@ -118,9 +118,9 @@ Flyway 在首次启动时执行 `backend/src/main/resources/db/migration/V1__sch
 bash scripts/test-mysql.sh
 ```
 
-脚本启动独立 `mysql-test` 服务（MySQL 8.4、内存临时数据目录，无对外端口），在 Java 21 Maven 容器内执行 `mvn verify`，最后停止测试数据库。测试库名强制包含 `equipment_booking_test`；用例会清理这个专用数据库，**不要把它配置到开发数据库**。测试不会操作开发 `mysql` 服务和开发数据卷。
+脚本启动独立 `mysql-test` 服务（MySQL 8.4、内存临时数据目录，无对外端口），在 Java 25 Maven 容器内执行 `mvn verify`，最后停止测试数据库。测试库名强制包含 `equipment_booking_test`；用例会清理这个专用数据库，**不要把它配置到开发数据库**。测试不会操作开发 `mysql` 服务和开发数据卷。
 
-有 Java 21 + Maven + 可用 Docker 时，也可直接运行：
+有 Java 25 + Maven + 可用 Docker 时，也可直接运行：
 
 ```bash
 cd backend
@@ -153,7 +153,7 @@ npm run build
 
 ### 本次执行记录
 
-2026-10-15，最终 React 版本实际执行结果如下。
+以下为 2026-10-15、Java 21 时的既有验证记录。项目之后已升级到 Java 25；需在 Java 25 上重新执行验证以确认新运行时。
 
 | 验证 | 实际结果 |
 | --- | --- |
@@ -167,9 +167,9 @@ npm run build
 | 浏览器实际接口验收 | **通过**：成员登录、真实设备加载、预约、取消释放、另一成员重新预约、管理员领用与归还、设备编辑保存；页面显示实际借还时间，归还后原时段仍被占用 |
 | 手机布局 | **通过基本检查**：390px 视口显示 8 台真实设备，页面宽度为 390px，无整体横向溢出；导航可横向滚动 |
 | Compose 配置及脚本语法 | **通过**：`docker compose config --quiet`、`bash -n` |
-| Docker / Testcontainers 启动路径 | **未验证成功**：当前镜像仓库及镜像源下载出现 EOF / 超时，因此使用官方原生 MySQL 和 Java 21 完成上述数据库测试；没有使用 H2、mock 数据库或跳过测试 |
+| Docker / Testcontainers 启动路径 | **未验证成功**：当时镜像仓库及镜像源下载出现 EOF / 超时，因此使用官方原生 MySQL 和 Java 21 完成上述数据库测试；没有使用 H2、mock 数据库或跳过测试 |
 
-测试报告位于 `backend/target/surefire-reports/com.example.equipment.BookingIntegrationTest.txt`，可执行后端位于 `backend/target/equipment-booking-1.0.0.jar`（构建产物不提交版本库）。本次临时数据库监听 `127.0.0.1:3308`，与 Compose 默认的 `3307` 分开；开发库与测试库也互相独立。当前工作区的原生运行工具放在被忽略的 `.local/` 中，未修改系统 Java 或 MySQL 安装。下载包来自 [MySQL 官方下载页](https://dev.mysql.com/downloads/mysql/8.4.html) 和 Azul 官方 Java 21 分发。
+2026-10-15 的测试报告当时位于 `backend/target/surefire-reports/com.example.equipment.BookingIntegrationTest.txt`；Java 25 clean build 清理了旧报告，本次尚未在 Java 25 上执行测试。当前 Java 25 可执行后端位于 `backend/target/equipment-booking-1.0.0.jar`（构建产物不提交版本库）。此前临时数据库监听 `127.0.0.1:3308`，与 Compose 默认的 `3307` 分开；开发库与测试库也互相独立。此前验证未修改系统 Java 或 MySQL 安装。下载包来自 [MySQL 官方下载页](https://dev.mysql.com/downloads/mysql/8.4.html) 和 Azul 官方 Java 21 分发。
 
 已有本地 MySQL 时，可以不经过容器运行测试，例如提前创建专用 `equipment_booking_test` 库并设置对应账号权限，然后执行：
 
