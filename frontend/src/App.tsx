@@ -14,8 +14,18 @@ function Workspace() {
   const location = useLocation()
   const notify = useToast()
   const [leaving, setLeaving] = useState(false)
-  if (loading) return <div className="empty-state">正在恢复登录状态…</div>
-  if (!user) return <Navigate to="/login" replace />
+  if (loading) {
+    return <div className="empty-state">正在恢复登录状态…</div>
+  }
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    )
+  }
+
   async function signOut() {
     setLeaving(true)
     try {
@@ -26,10 +36,14 @@ function Workspace() {
       setLeaving(false)
     }
   }
+
   return (
     <div className="app-layout">
       <aside className="sidebar">
-        <Link to="/equipment" className="brand">
+        <Link
+          to="/equipment"
+          className="brand"
+        >
           <span className="brand-icon">
             <AppIcon size={25} />
           </span>
@@ -66,7 +80,10 @@ function Workspace() {
           )}
         </nav>
         <div className="sidebar-note">
-          <AppIcon name="sun" size={24} />
+          <AppIcon
+            name="sun"
+            size={24}
+          />
           <p>好设备，一起用。</p>
           <small>按时借还，让协作更轻松。</small>
         </div>
@@ -83,7 +100,10 @@ function Workspace() {
             disabled={leaving}
             onClick={signOut}
           >
-            <AppIcon name="logout" size={18} />
+            <AppIcon
+              name="logout"
+              size={18}
+            />
           </button>
         </div>
       </aside>
@@ -108,23 +128,76 @@ function Workspace() {
     </div>
   )
 }
+
 function AdminOnly() {
-  return useAuth().user?.role === 'ADMIN' ? <Outlet /> : <Navigate to="/equipment" replace />
+  // 这里控制页面入口；真正的数据权限仍由后端 Spring Security 校验。
+  return useAuth().user?.role === 'ADMIN' ? (
+    <Outlet />
+  ) : (
+    <Navigate
+      to="/equipment"
+      replace
+    />
+  )
 }
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginView />} />
+      <Route
+        path="/login"
+        element={<LoginView />}
+      />
       <Route element={<Workspace />}>
-        <Route index element={<Navigate to="/equipment" replace />} />
-        <Route path="/equipment" element={<EquipmentListView />} />
-        <Route path="/equipment/:id" element={<EquipmentDetailView />} />
-        <Route path="/mine" element={<ReservationsView key="mine" admin={false} />} />
+        <Route
+          index
+          element={
+            <Navigate
+              to="/equipment"
+              replace
+            />
+          }
+        />
+        <Route
+          path="/equipment"
+          element={<EquipmentListView />}
+        />
+        <Route
+          path="/equipment/:id"
+          element={<EquipmentDetailView />}
+        />
+        <Route
+          path="/mine"
+          element={
+            <ReservationsView
+              key="mine"
+              admin={false}
+            />
+          }
+        />
         <Route element={<AdminOnly />}>
-          <Route path="/admin/equipment" element={<EquipmentAdminView />} />
-          <Route path="/admin/reservations" element={<ReservationsView key="all" admin />} />
+          <Route
+            path="/admin/equipment"
+            element={<EquipmentAdminView />}
+          />
+          <Route
+            path="/admin/reservations"
+            element={
+              <ReservationsView
+                key="all"
+                admin
+              />
+            }
+          />
         </Route>
-        <Route path="*" element={<Navigate to="/equipment" replace />} />
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/equipment"
+              replace
+            />
+          }
+        />
       </Route>
     </Routes>
   )

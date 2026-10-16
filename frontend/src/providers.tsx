@@ -11,29 +11,42 @@ interface AuthState {
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
 }
+
 const AuthContext = createContext<AuthState | null>(null)
+
 export function useAuth() {
   const value = useContext(AuthContext)
-  if (!value) throw new Error('AuthProvider is missing')
+  if (!value) {
+    throw new Error('AuthProvider is missing')
+  }
   return value
 }
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [connectionError, setConnectionError] = useState('')
+
   useEffect(() => {
+    // 页面卸载后忽略旧请求的结果，避免更新已离开的页面。
     let active = true
     api<User>('/auth/me')
       .then((result) => {
-        if (active) setUser(result)
+        if (active) {
+          setUser(result)
+        }
       })
       .catch((error) => {
-        if (active && !(error instanceof ApiError && error.status === 401))
+        if (active && !(error instanceof ApiError && error.status === 401)) {
           setConnectionError(errorMessage(error))
+        }
       })
       .finally(() => {
-        if (active) setLoading(false)
+        if (active) {
+          setLoading(false)
+        }
       })
+    // API 层收到 401 时广播此事件，路由会随登录状态一起更新。
     const expired = () => setUser(null)
     window.addEventListener('session-expired', expired)
     return () => {
@@ -41,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('session-expired', expired)
     }
   }, [])
+
   async function login(username: string, password: string) {
     setConnectionError('')
     const result = await api<User>('/auth/login', {
@@ -49,20 +63,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     setUser(result)
   }
+
   async function logout() {
     await api('/auth/logout', { method: 'POST' })
     setUser(null)
   }
+
   return (
     <AuthContext.Provider value={{ user, loading, connectionError, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
 }
+
 const ToastContext = createContext<(message: string) => void>(() => {})
+
 export function useToast() {
   return useContext(ToastContext)
 }
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [message, setMessage] = useState('')
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -71,15 +90,26 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     clearTimeout(timer.current)
     timer.current = setTimeout(() => setMessage(''), 5000)
   }, [])
+
   useEffect(() => () => clearTimeout(timer.current), [])
+
   return (
     <ToastContext.Provider value={notify}>
       {children}
       {message && (
-        <div className="toast" role="status">
-          <AppIcon name="check" size={18} />
+        <div
+          className="toast"
+          role="status"
+        >
+          <AppIcon
+            name="check"
+            size={18}
+          />
           {message}
-          <button aria-label="关闭提示" onClick={() => setMessage('')}>
+          <button
+            aria-label="关闭提示"
+            onClick={() => setMessage('')}
+          >
             ×
           </button>
         </div>

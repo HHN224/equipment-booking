@@ -3,5 +3,7 @@
   "singleQuote": true,
   "htmlWhitespaceSensitivity": "ignore",
   "printWidth": 100,
+  "singleAttributePerLine": true,
+  "endOfLine": "lf",
   "trailingComma": "all"
 }
